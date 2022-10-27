@@ -1,178 +1,65 @@
-class Pajaro {	
-	var ira
+class Pajaro{
+	
+	//var property estaEnojado = false
+	var property ira = 0
 	
 	method enojarse(){
-		ira *= 2
+		ira*=2
 	}
+	method fuerza() = ira*2
 	
-	method tranquilizarse()	{
-		ira -= 5
-	}
-	method fuerza()	{
-		return ira * 2
-	}
-	method esFuerte(){
-		return self.fuerza()>50
-	}
-	method puedeDerribar(obstaculo){
-		return self.fuerza() > obstaculo.resistencia()
+	method tranquilizarse(){
+		ira-=5
 	}
 }
 
-class Rencoroso inherits Pajaro{
-	var cantCosasEnojar = 0
-	var multiplicador
+class PajaroRencoroso inherits Pajaro{
+	var property cantidadDeVecesQueSeEnojo = 0
+}
+
+object red inherits PajaroRencoroso{
+	override method fuerza() = ira*10*cantidadDeVecesQueSeEnojo
+}
+
+object bomb inherits Pajaro{
+	var property topeDeFuerza = 9000
+
+	override method fuerza() = super().min(topeDeFuerza)
+}
+
+object chuck inherits Pajaro{
+	var property velocidad = 0
 	
-	
-	override method enojarse() {
-		cantCosasEnojar += 1
-		super()
+	override method enojarse(){
+		velocidad*=2
 	}
+	override method tranquilizarse(){}
 	
-	override method fuerza(){
-		return ira * multiplicador * cantCosasEnojar
-	}	
+	override method fuerza() = if(velocidad<80) 150 else 5*(velocidad-80)
+
+}
+object terence inherits PajaroRencoroso{
+	
+	var property multiplicador = 1
+	
+	override method fuerza() = ira*cantidadDeVecesQueSeEnojo*multiplicador
 }
 
-object bomb inherits Pajaro(ira = 10){	
-	var maximoFuerza = 9000
-	override method fuerza()	{ 
-		return super().min(maximoFuerza)
-	}	
-}
-
-object chuck inherits Pajaro(ira = 10){	
-	var velocidad = 100
+object matilda inherits Pajaro{
 	
-	override method fuerza(){ 
-		return 150 + 5 * 0.max(velocidad - 80)
-	}	
+	const huevos = []
 	
-	override method enojarse(){ 
-		velocidad *= 2
-	}
-	override method tranquilizarse(){ 
-	}	
-}
-
-object matilda inherits Pajaro(ira = 10){
-	var huevos = [new Huevo(peso=5),new Huevo(peso = 3)]		
-	override method fuerza(){ 
-		return super() + huevos.sum({huevo => huevo.fuerza()})
-	}
-		
-	override method enojarse()	{ 
-		huevos.add(new Huevo(peso = 2))
-	}		
-}
-
-class Huevo {
-	var peso
+	override method fuerza() = super() + self.fuerzaHuevos()
 	
-	method fuerza()	{
-		return peso
+	method fuerzaHuevos() = huevos.sum{huevo=>huevo.fuerza()}
+	
+	override method enojarse(){
+		huevos.add(new Huevo(peso=2))
 	}
 }
 
-object islaPajaro {
-	var pajaros = []
-
-	method agregarPajaro(pajaro){
-		pajaros.add(pajaro)
-	}
+class Huevo{
+	var property peso
 	
-	method pajarosFuertes()	{  
-		return pajaros.filter({pajaro => pajaro.esFuerte()})
-	}
-	
-	method fuerza()	{
-		return self.pajarosFuertes().sum({pajaro => pajaro.fuerza()})
-	}
-	method suceder(evento){
-		pajaros.forEach({pajaro => evento.alterar(pajaro)})
-	}
-	
-	method atacar(isla) {
-		pajaros.forEach{pajaro => isla.recibirAtaque(pajaro)}
-	}
-
-}
-
-object sesionDeManejoDeLaIra{
-	method alterar(pajaro){
-		pajaro.tranquilizarse()
-	}
-}	
-
-class InvasionDeCerditos{
-	var cantidadInvasores
-	
-
-	method alterar(pajaro){
-		cantidadInvasores.div(100).times({x=>pajaro.enojarse()})
-	}
-}
-	
-class FiestaSorpresa{
-	var homenajeados
-	
-	method alterar(pajaro){
-		if(homenajeados.contains(pajaro))
-			pajaro.enojarse()
-		else if (homenajeados.isEmpty())
-			throw new Exception("No puede haber una fiesta sorpresa sin homenajeados")
-	}
-}	
-class SerieDeEventosDesafortunados{
-	var eventos = [] 
-	
-	method alterar(pajaro){
-		eventos.forEach{evento=>evento.alterar(pajaro)}
-	}
-}
-
-object islaCerdito
-{
-	var obstaculos = []
-	
-	method agregarObstaculo(obstaculo) {
-		obstaculos.add(obstaculo)
-	}
-
-	method libreDeObstaculos() {
-		return obstaculos.isEmpty()
-	}
-	method recibirAtaque(pajaro) {
-		if (!self.libreDeObstaculos() and pajaro.puedeDerribar(obstaculos.head())) 
-			obstaculos.remove(obstaculos.head())
-	}
-}
-
-class Pared
-{
-	var ancho
-	var material // algo resistente
-
-	method resistencia() {
-		return material.resistencia()*ancho
-	}
-}
-
-class Resistente {
-	var property resistencia
-
-}
-
-object cerditoObrero {
-	method resistencia(){
-		return 50
-	}
-}
-
-class CerditoArmado {
-	var elemento // algo resistente
-	
-	method resistencia() {
-		return 10 * elemento.resistencia()
-	}
+	method fuerza () = peso
 }
